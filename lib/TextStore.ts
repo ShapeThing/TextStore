@@ -1,7 +1,7 @@
 import namespace from '@rdfjs/namespace'
 import * as RDF from '@rdfjs/types'
 import { Index, IndexOptions } from 'flexsearch'
-import { BaseQuad, Quad, Store } from 'n3'
+import { BaseQuad, Quad, Store, Term } from 'n3'
 
 export const tsst = namespace('https://textstore.shapething.com/')
 
@@ -68,16 +68,15 @@ export class TextStore<
       const results = new Store()
 
       for (const objectId of objectIds) {
-        object = this._termFromId(this._entities[objectId])
-        const subStream = super.match(subject, predicate, object, graph)
         /** @ts-ignore */
-        results.addQuads([...subStream])
+        object = this._termFromId(this._entities[objectId])
+        const subStream = super.match(subject as Term, null, object as Term, graph as Term)
+        results.addQuads([...subStream] as RDF.Quad[])
       }
 
-      /** @ts-ignore */
-      return results.toStream()
+      return results.match() as RDF.Stream<Q_RDF> & RDF.DatasetCore<OutQuad, InQuad>
     }
 
-    return super.match(subject, predicate, object, graph)
+    return super.match(subject as Term, predicate as Term, object as Term, graph as Term)
   }
 }
