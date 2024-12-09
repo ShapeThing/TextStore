@@ -1,18 +1,43 @@
+import { QueryEngine } from '@comunica/query-sparql'
 import { DataFactory } from 'n3'
 import { expect, test } from 'vitest'
 import { TextStore, tsst } from './TextStore'
 const { namedNode, literal, quad } = DataFactory
 
-test('adds 1 + 2 to equal 3', () => {
+const createStore = () => {
   const store = new TextStore()
 
-  store.add(quad(namedNode(''), namedNode('https://schema.org/name'), literal('John Doe')))
-  store.add(quad(namedNode(''), namedNode('https://schema.org/name'), literal('Johanna Doe')))
-  store.add(quad(namedNode(''), namedNode('https://schema.org/name'), literal('Frank Doe')))
+  store.add(quad(namedNode('a'), namedNode('https://schema.org/name'), literal('John Doe')))
+  store.add(quad(namedNode('b'), namedNode('https://schema.org/name'), literal('Johanna Doe')))
+  store.add(quad(namedNode('c'), namedNode('https://schema.org/name'), literal('Frank Doe')))
 
+  return store
+}
+
+test('match', () => {
+  const store = createStore()
   const result = [...store.match(null, tsst('search'), literal('Jo'))]
+  expect(result[0].object.value).toBe('John Doe')
+  expect(result[1].object.value).toBe('Johanna Doe')
   expect(result.length).toBe(2)
+})
 
-  const result1 = [...store.match(null, tsst('search'), literal('Fr'))]
-  console.log(result1)
+test('query', async () => {
+  const store = createStore()
+
+  const engine = new QueryEngine()
+  const response = await engine.queryBindings(
+    `select * where { 
+      ?s <https://textstore.shapething.com/search> "Fr" .
+      ?s ?p ?o
+    }`,
+    {
+      sources: [store]
+    }
+  )
+
+  const bindings = await response.toArray()
+  expect(bindings[0].get('p')?.value).toBe('https://schema.org/name')
+  expect(bindings[0].get('o')?.value).toBe('Frank Doe')
+  expect(bindings.length).toBe(1)
 })

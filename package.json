@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@comunica/query-sparql": "^4.0.2",
     "@rdfjs/types": "^1.1.2",
     "@types/n3": "^1.21.1",
     "@types/rdfjs__data-model": "^2.0.8",
