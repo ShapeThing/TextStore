@@ -1,0 +1,27 @@
+{
+  "name": "textstore",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@rdfjs/types": "^1.1.2",
+    "@types/n3": "^1.21.1",
+    "@types/rdfjs__data-model": "^2.0.8",
+    "@types/rdfjs__namespace": "^2.0.10",
+    "n3": "^1.23.1",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.1",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@rdfjs/data-model": "^2.0.2",
+    "@rdfjs/namespace": "^2.0.1",
+    "flexsearch": "^0.7.43"
+  }
+}
