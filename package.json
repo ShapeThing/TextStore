@@ -1,6 +1,5 @@
 {
   "name": "textstore",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -9,6 +8,7 @@
     "test": "vitest",
     "preview": "vite preview"
   },
+  "license": "MIT",
   "devDependencies": {
     "@comunica/query-sparql": "^4.2.0",
     "@rdfjs/types": "^2.0.1",
