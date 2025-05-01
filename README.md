@@ -15,6 +15,10 @@ const result = store.match(null, namedNode('https://textstore.shapething.com/sea
 
 # Install
 
-`npx jsr add @shapething/textstore`
+Run `npx jsr add @shapething/textstore`
 
 See https://jsr.io/@shapething/textstore
+
+# Publish new version
+
+Run `npx jsr publish`
