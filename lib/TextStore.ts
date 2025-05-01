@@ -4,7 +4,10 @@ import { Index } from 'flexsearch'
 import { BaseQuad, Quad, Store, Term } from 'n3'
 import { PublicStore } from './PublicStore'
 
-export const tsst: NamespaceBuilder<string> = namespace('https://textstore.shapething.com/')
+const tsst: NamespaceBuilder<string> = namespace('https://textstore.shapething.com/')
+/**
+ * The default IRI to use for searching with TextStore
+ */
 export const defaultSearchTerm: RDF.NamedNode = tsst('search')
 
 type TextStoreOptions = {
@@ -13,6 +16,9 @@ type TextStoreOptions = {
   searchTerm?: RDF.NamedNode
 }
 
+/**
+ * A TextStore, an N3 store with fuzzy search capabilities
+ */
 export class TextStore<
   Q_RDF extends RDF.BaseQuad = RDF.Quad,
   Q_N3 extends BaseQuad = Quad,
