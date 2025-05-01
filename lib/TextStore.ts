@@ -1,13 +1,16 @@
 import namespace from '@rdfjs/namespace'
 import * as RDF from '@rdfjs/types'
-import { Index, IndexOptions } from 'flexsearch'
+import { Index } from 'flexsearch'
 import { BaseQuad, Quad, Store, Term } from 'n3'
+import { PublicStore } from './PublicStore'
 
 export const tsst = namespace('https://textstore.shapething.com/')
+export const defaultSearchTerm = tsst('search')
 
 type TextStoreOptions = {
   storeOptions?: ConstructorParameters<typeof Store>[0]
-  indexOptions?: IndexOptions<string>
+  indexOptions?: any
+  searchTerm?: RDF.NamedNode
 }
 
 export class TextStore<
@@ -15,20 +18,24 @@ export class TextStore<
   Q_N3 extends BaseQuad = Quad,
   OutQuad extends RDF.BaseQuad = RDF.Quad,
   InQuad extends RDF.BaseQuad = RDF.Quad
-> extends Store<Q_RDF, Q_N3, OutQuad, InQuad> {
+> extends PublicStore<Q_RDF, Q_N3, OutQuad, InQuad> {
   #textIndex: Index
-
-  /** @ts-ignore */
-  private _termToNumericId(term: RDF.Term): number
-  /** @ts-ignore */
-  private _termFromId(id: number): Term
+  #searchTerm: RDF.NamedNode
 
   constructor(options: TextStoreOptions = {}) {
     super(options.storeOptions as Q_RDF[] | undefined)
+
+    this.#searchTerm = options.searchTerm ?? defaultSearchTerm
+
     this.#textIndex = new Index({
       tokenize: 'full',
       ...(options.indexOptions ?? {})
     })
+
+    if (options.storeOptions) {
+      const quads = [...options.storeOptions] as InQuad[]
+      for (const quad of quads) this.add(quad)
+    }
   }
 
   features = {
@@ -45,10 +52,23 @@ export class TextStore<
     return result
   }
 
-  countQuads(subject: RDF.Term, predicate: RDF.Term, object: RDF.Term, graph: RDF.Term): number {
-    const isTextSearch = tsst('search').equals(predicate)
-    if (isTextSearch) return this.size // A somewhat reasonable number.
-    return super.countQuads(subject, predicate, object, graph)
+  delete(quad: InQuad): this {
+    const result = super.delete(quad)
+    if (quad.object.termType === 'Literal') {
+      const otherQuads = result.getQuads(null, null, quad.object, null)
+      if (!otherQuads.length) {
+        const id = this._termToNumericId(quad.object)
+        this.#textIndex.remove(id)
+      }
+    }
+
+    return result
+  }
+
+  countQuads(subject: RDF.Term, predicate: RDF.Term, object: RDF.Term, graph: RDF.Term | null): number {
+    const isTextSearch = this.#searchTerm.equals(predicate)
+    if (!isTextSearch) return super.countQuads(subject, predicate, object, graph)
+    return this.size // A somewhat reasonable number.
   }
 
   match(
@@ -56,27 +76,26 @@ export class TextStore<
     predicate?: RDF.Term | null,
     object?: RDF.Term | null,
     graph?: RDF.Term | null
-  ): RDF.Stream<Q_RDF> & RDF.DatasetCore<OutQuad, InQuad> {
-    const isTextSearch = predicate?.equals(tsst('search'))
+  ): RDF.Stream<Q_RDF> & RDF.Dataset<OutQuad, InQuad> {
+    const isTextSearch = predicate?.equals(this.#searchTerm)
     const search = isTextSearch ? object?.value : undefined
 
-    if (isTextSearch && search) {
-      object = null
-      predicate = null
+    if (!isTextSearch || !search) return super.match(subject as Term, predicate as Term, object as Term, graph as Term)
 
-      const objectIds = this.#textIndex.search(search)
-      const results = new Store()
+    object = null
+    predicate = null
 
-      for (const objectId of objectIds) {
-        /** @ts-ignore */
-        object = this._termFromId(this._entities[objectId])
-        const subStream = super.match(subject as Term, null, object as Term, graph as Term)
-        results.addQuads([...subStream] as RDF.Quad[])
-      }
+    const objectIds = this.#textIndex.search(search) as number[]
+    const results = new Store()
 
-      return results.match() as RDF.Stream<Q_RDF> & RDF.DatasetCore<OutQuad, InQuad>
+    for (const objectId of objectIds) {
+      /** @ts-expect-error This is a private object from Store */
+      const id = this._entities[objectId]
+      object = this._termFromId(id)
+      const subStream = [...super.match(subject as Term, null, object as Term, graph as Term)]
+      results.addQuads([...subStream] as RDF.Quad[])
     }
 
-    return super.match(subject as Term, predicate as Term, object as Term, graph as Term)
+    return results.match() as RDF.Stream<Q_RDF> & RDF.Dataset<OutQuad, InQuad>
   }
 }

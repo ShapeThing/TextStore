@@ -14,12 +14,25 @@ const createStore = () => {
   return store
 }
 
-test('match', () => {
+test('match, check additions and deletions', () => {
   const store = createStore()
   const result = [...store.match(null, tsst('search'), literal('Jo'))]
   expect(result[0].object.value).toBe('John Doe')
   expect(result[1].object.value).toBe('Johanna Doe')
   expect(result.length).toBe(2)
+
+  const result2 = [...store.match(null, tsst('search'), literal('Peter'))]
+  expect(result2.length).toBe(0)
+  store.add(quad(namedNode('c'), namedNode('https://schema.org/name'), literal('Peter Peterson')))
+  store.add(quad(namedNode('c'), namedNode('https://schema.org/name'), literal('Peter Jackson')))
+  const result3 = [...store.match(null, tsst('search'), literal('Peter'))]
+  expect(result3.length).toBe(2)
+  store.delete(quad(namedNode('c'), namedNode('https://schema.org/name'), literal('Peter Peterson')))
+  const result4 = [...store.match(null, tsst('search'), literal('Peter'))]
+  expect(result4.length).toBe(1)
+  store.delete(quad(namedNode('c'), namedNode('https://schema.org/name'), literal('Peter Jackson')))
+  const result5 = [...store.match(null, tsst('search'), literal('Peter'))]
+  expect(result5.length).toBe(0)
 })
 
 test('query', async () => {
@@ -40,4 +53,13 @@ test('query', async () => {
   expect(bindings[0].get('p')?.value).toBe('https://schema.org/name')
   expect(bindings[0].get('o')?.value).toBe('Frank Doe')
   expect(bindings.length).toBe(1)
+})
+
+test('initialization with quads', () => {
+  const store = new TextStore({
+    storeOptions: [quad(namedNode('a'), namedNode('https://schema.org/name'), literal('John Doe'))]
+  })
+  const result = [...store.match(null, tsst('search'), literal('Jo'))]
+  expect(result[0].object.value).toBe('John Doe')
+  expect(result.length).toBe(1)
 })
