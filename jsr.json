@@ -1,0 +1,6 @@
+{
+  "name": "@shapething/textstore",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": "./lib/TextStore.ts"
+}

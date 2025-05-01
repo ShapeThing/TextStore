@@ -1,11 +1,11 @@
-import namespace from '@rdfjs/namespace'
+import namespace, { NamespaceBuilder } from '@rdfjs/namespace'
 import * as RDF from '@rdfjs/types'
 import { Index } from 'flexsearch'
 import { BaseQuad, Quad, Store, Term } from 'n3'
 import { PublicStore } from './PublicStore'
 
-export const tsst = namespace('https://textstore.shapething.com/')
-export const defaultSearchTerm = tsst('search')
+export const tsst: NamespaceBuilder<string> = namespace('https://textstore.shapething.com/')
+export const defaultSearchTerm: RDF.NamedNode = tsst('search')
 
 type TextStoreOptions = {
   storeOptions?: ConstructorParameters<typeof Store>[0]
