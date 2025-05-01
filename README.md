@@ -1,10 +1,12 @@
 # Text Store
 
+A thin wrapper around [N3 Store](https://github.com/rdfjs/N3.js) and [Flexsearch](https://github.com/nextapps-de/flexsearch) enabling in-memory fuzzy text search.
+
 <a href="https://jsr.io/@shapething/textstore">
   <img src="https://jsr.io/badges/@shapething/textstore/score" alt="" />
 </a>
 
-A thin wrapper around [N3 Store](https://github.com/rdfjs/N3.js) and [Flexsearch](https://github.com/nextapps-de/flexsearch) enabling in-memory fuzzy text search.
+<br />
 
 ```TypeScript
 import { TextStore } from '@shapething/textstore'
