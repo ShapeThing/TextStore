@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "test": "vitest",
-    "preview": "vite preview"
+    "test": "vitest"
   },
   "license": "MIT",
   "devDependencies": {
